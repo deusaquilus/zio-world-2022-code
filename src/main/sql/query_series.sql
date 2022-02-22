@@ -38,16 +38,14 @@ WHERE r.series  = 'T' AND r.assemblyYear > 1992
 
 -- Polymorhpism?
 
-SELECT h.toCustomer(h.firstName || ' ' || h.lastName, h.membership, 1982) FROM Humans h
-WHERE h.segment = 'h'
+(SELECT Humans h WHERE h.segment = 'h').toCustomer(h.firstName || ' ' || h.lastName, h.membership, 1982)
 UNION
-SELECT h.toCustomer(h.heroName, 'PLAT', 1982) FROM SuperHumans h
-WHERE r.side  = 'g'
+(SELECT SuperHumans h WHERE r.side  = 'g').toCustomer(h.heroName, 'PLAT', 1982)
 
 
-SELECT r.toCustomer(r.label)(1990) FROM Robots r
+(SELECT Robots r).toCustomer(r.label, 1990)
 UNION
-SELECT r.toCustomer(r.series || "-" || r.model)(1992) FROM KillerRobots r WHERE r.series  = 'T'
+(SELECT KillerRobots r WHERE r.series  = 'T').toCustomer(r.series || "-" || r.model, 1992)
 
 /*
 case class Human(firstName: String, lastName: String, age: Int, membership: String, segment: String, age: Int)
@@ -132,6 +130,17 @@ SELECT customer.name, customer.age, customer.membership, customer.id, h.zip FROM
 ) AS customer
 JOIN Houses h ON h.OWNER = customer.ID
 
+--Bit more complex (robot)
+SELECT customer.name, customer.age, customer.membership, customer.id, h.zip FROM (
+  SELECT r.model AS name, today() - r.assemblyYear, 'AUTO' FROM Robots r
+  WHERE r.assemblyYear > 1990
+  UNION
+  SELECT r.series || "-" || r.model AS name, today() - r.assemblyYear, 'AUTO' FROM KillerRobots r
+  WHERE r.series  = 'T' AND r.assemblyYear > 1992
+) AS customer
+JOIN Houses h ON h.OWNER = customer.ID AND h.hasChargingPort=true
+
+
 
 --Bit more complex
 SELECT customer.name, customer.age, customer.membership, customer.id, h.zip FROM (
@@ -141,8 +150,19 @@ SELECT customer.name, customer.age, customer.membership, customer.id, h.zip FROM
   SELECT h.heroName AS name, h.age, 'PLAT', h.id FROM SuperHumans h
   WHERE h.side = 'g' AND h.age > 1856
 ) AS customer
-JOIN Houses h ON h.OWNER = customer.ID
+JOIN Houses h ON h.OWNER = customer.ID AND h.hasChargingPort=true
 JOIN PricingYears p ON customer.age > p.startYear && customer.age < p.endYear
+
+--Bit more complex (robot)
+SELECT customer.name, customer.age, customer.membership, customer.id, h.zip FROM (
+  SELECT r.model AS name, today() - r.assemblyYear, 'AUTO' FROM Robots r
+  WHERE r.assemblyYear > 1990
+  UNION
+  SELECT r.series || "-" || r.model AS name, today() - r.assemblyYear, 'AUTO' FROM KillerRobots r
+  WHERE r.series  = 'T' AND r.assemblyYear > 1992
+) AS customer
+JOIN Pods h ON h.OWNER = customer.ID AND h.hasChargingPort=true
+JOIN PodLifetimes l ON l.POD_FK = h.ID AND l.supportedModelsYear >= r.assemblyYear
 
 
 --Bit more complex
@@ -156,17 +176,59 @@ SELECT customer.name, customer.age,
   SELECT h.heroName AS name, h.age, 'PLAT', h.id FROM SuperHumans h
   WHERE h.side = 'g' AND h.age > 1856
 ) AS customer
-JOIN Houses h ON h.OWNER = customer.ID
+JOIN Houses h ON h.OWNER = customer.ID AND h.hasChargingPort=true
+JOIN PricingYears p ON customer.age > p.startYear && customer.age < p.endYear
+
+
+--Bit more complex (robot)
+SELECT customer.name, customer.age,
+  CASE WHEN p.voltage = 120 THEN 'USA' ELSE 'EU' END as membership,
+  customer.id, h.zip FROM
+(
+  SELECT r.model AS name, today() - r.assemblyYear, 'AUTO' FROM Robots r
+  WHERE r.assemblyYear > 1990
+  UNION
+  SELECT r.series || "-" || r.model AS name, today() - r.assemblyYear, 'AUTO' FROM KillerRobots r
+  WHERE r.series  = 'T' AND r.assemblyYear > 1992
+) AS customer
+JOIN Houses h ON h.OWNER = customer.ID AND h.hasChargingPort=true
+JOIN PricingYears p ON customer.age > p.startYear && customer.age < p.endYear
+
+
+
+SELECT customer.name, customer.age, customer.membership, customer.id, h.zip
+FROM
+(
+  SELECT r.uniqueGruntingSound AS name, y.age, 'YETT'
+  FROM Yetti y
+) AS customer
+JOIN Houses h ON h.OWNER = customer.ID AND (h.origin = 'Canada' OR h.origin = 'Russia')
 JOIN PricingYears p ON customer.age > p.startYear && customer.age < p.endYear
 
 
 
 --With Polymorphism
-SELECT customerMembership(customer) FROM (
-  SELECT h.toCustomer(h.firstName || ' ' || h.lastName, h.membership, 1982) FROM Humans h WHERE h.segment = 'h'
+customerMembership(
+  (SELECT Humans h WHERE h.segment = 'h').toCustomer(h.firstName || ' ' || h.lastName, h.membership, 1982)
   UNION
-  SELECT h.toCustomer(h.heroName, 'PLAT', 1982) FROM SuperHumans h WHERE r.side  = 'g'
-) AS customer
+  (SELECT SuperHumans h WHERE r.side  = 'g').toCustomer(h.heroName, 'PLAT', 1982),
+  true
+)
+
+-- (robot)
+customerMembership(
+  (SELECT Robots r).toCustomer(r.label, 1990)
+  UNION
+  (SELECT KillerRobots r WHERE r.series  = 'T').toCustomer(r.series || "-" || r.model, 1992),
+  h.hasChargingPort = true
+)
+
+-- (yetti)
+customerMembership(
+  (SELECT Yetti y).toCustomer(y.uniqueGruntingSound)
+  h.origin = 'Canada' OR h.origin = 'Russia'
+)
+
 
 /*
 
