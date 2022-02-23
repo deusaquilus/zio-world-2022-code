@@ -263,3 +263,17 @@ def customerMembership(cs: Query[Customer]) = quote {
 */
 
 
+select x2.x3,
+       x2.x4,
+       (case when (x5."pricing" = 'sane') then x2.x6 else x5."insaneMembership" end),
+       x2.x7,
+       x8."zip"
+from ((select "id" as x7, ("firstName" || ' ') || "lastName" as x3, "age" as x4, "membership" as x6
+      from "Human" where ("segment" = 'h') and ("age" > ?))
+      union all
+      (select "id" as x7, "heroName" as x3, "age" as x4, ? as x6
+      from "SuperHuman" where ("side" = 'g') and ("age" > ?))) x2,
+     "Houses" x8, "PrincingYears" x5
+where ((x8."owner" = x2.x7) and ?)
+  and ((x2.x4 > x5."startYear") and (x2.x4 < x5."endYear"))
+
