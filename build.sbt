@@ -19,7 +19,8 @@ lazy val root = (project in file("."))
       "dev.zio"               %% "zio-test"         % "2.0.0-RC2" % Test,
       "com.github.ghostdogpr" %% "caliban"          % "2.0.0-RC1",
       "com.github.ghostdogpr" %% "caliban-zio-http" % "2.0.0-RC1",
-      "dev.zio"               %% "zio-json"         % "0.3.0-RC3" // update to 0.3.0-RC3 for zio2 support
+      "dev.zio"               %% "zio-json"         % "0.3.0-RC3", // update to 0.3.0-RC3 for zio2 support
+      "io.d11"                %% "zhttp"            % "2.0.0-RC4"
     ),
     scalacOptions ++= Seq("-Ymacro-annotations"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")

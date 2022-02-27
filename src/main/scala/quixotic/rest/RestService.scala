@@ -9,18 +9,18 @@ import quixotic.DataService
 import quixotic.DataServiceLive
 import quixotic.QuillContext
 
-object RestService extends zio.App:
+object RestService extends ZIOAppDefault:
   implicit val encoder: JsonEncoder[Record] = DeriveJsonEncoder.gen[Record]
 
-  override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
-    (QuillContext.dataSourceLayer >>> DataService.live).build.useNow.flatMap(dsl =>
+  override def run =
+    ZIO.service[DataService].flatMap { dss =>
       Server.start(
         8088,
         Http.collectZIO[Request] {
-          case Method.GET -> Root / "customers" =>
-            dsl.get.getCustomers.map(cs => Response.json(cs.toJson))
+          case Method.GET -> !! / "customers" =>
+            dss.getCustomers.map(cs => Response.json(cs.toJson))
         }
-      ).forever.exitCode
-    )
+      )
+    }.provide(QuillContext.dataSourceLayer, DataService.live).exitCode
 
 end RestService
