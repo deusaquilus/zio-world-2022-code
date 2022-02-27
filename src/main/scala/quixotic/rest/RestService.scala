@@ -16,8 +16,9 @@ object RestService extends ZIOAppDefault:
     Server.start(
       8088,
       Http.collectZIO[Request] {
-        case Method.GET -> !! / "customers" =>
+        case req @ Method.GET -> !! / "customers" =>
           ZIO.environment[DataService].flatMap(dsl =>
+            //req.url.queryParams
             dsl.get.getCustomers.map(cs => Response.json(cs.toJson))
           )
       }
