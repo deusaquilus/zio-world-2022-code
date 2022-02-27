@@ -3,8 +3,7 @@ package quixotic
 import zio.IO
 import java.sql.SQLException
 import javax.sql.DataSource
-import zio.Has
-import zio.console.putStrLn
+import zio.Console.printLine
 import io.getquill._
 
 import QuillContext._
@@ -13,7 +12,7 @@ import io.getquill.context.ZioJdbc.DataSourceLayer
 import zio._
 
 object QuillContext extends PostgresZioJdbcContext(Literal):
-  val dataSourceLayer: ULayer[Has[DataSource]] =
+  val dataSourceLayer: ULayer[DataSource] =
     DataSourceLayer.fromPrefix("database").orDie
 
 trait DataService:
@@ -30,12 +29,11 @@ final case class DataServiceLive(dataSource: DataSource) extends DataService:
         ++
         humanCustomer(HumanType.Super("g", 1856))
       }(_ => true, (c, p) => if p.pricing == "sane" then c.membership else p.insaneMembership)
-    }.provide(Has(dataSource))
+    }.provideService(dataSource)
 
-import zio._
 object RunLayer extends zio.App:
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     (for {
       dsl <- (DataService.live).build.useNow
-      _   <- dsl.get.getCustomers.tap(cs => putStrLn(cs.toString))
+      _   <- dsl.get.getCustomers.tap(cs => printLine(cs.toString))
     } yield ()).provideCustomLayer(QuillContext.dataSourceLayer).exitCode

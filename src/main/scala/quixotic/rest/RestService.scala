@@ -16,9 +16,9 @@ object RestService extends zio.App:
     (QuillContext.dataSourceLayer >>> DataService.live).build.useNow.flatMap(dsl =>
       Server.start(
         8088,
-        Http.collectM[Request] {
+        Http.collectZIO[Request] {
           case Method.GET -> Root / "customers" =>
-            dsl.get.getCustomers.map(cs => Response.jsonString(cs.toJson))
+            dsl.get.getCustomers.map(cs => Response.json(cs.toJson))
         }
       ).forever.exitCode
     )
