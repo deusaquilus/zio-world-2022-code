@@ -6,6 +6,9 @@ ThisBuild / organizationName := "example"
 lazy val root = (project in file("."))
   .settings(
     name := "quill-2",
+    // Need this option for zio-http or else runMain in sbt, then ctrl+c will not actually stop the process
+    // since it's running in the same JVM as SBT. (Also could be why certain combinations of settings weren't working)
+    fork in run := true,
     resolvers ++= Seq(
       Resolver.mavenLocal,
       "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",

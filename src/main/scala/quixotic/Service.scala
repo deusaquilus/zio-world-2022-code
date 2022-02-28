@@ -16,24 +16,21 @@ object QuillContext extends PostgresZioJdbcContext(Literal):
     DataSourceLayer.fromPrefix("database").orDie
 
 trait DataService:
-  def getCustomers: IO[SQLException, List[Record]]
+  def getCustomers(params: Map[String, String], columns: List[String]): IO[SQLException, List[Record]]
+  def getCustomersPlan(params: Map[String, String], columns: List[String]): IO[SQLException, List[String]]
 
 object DataService:
   val live = (DataServiceLive.apply _).toLayer[DataService]
 
 final case class DataServiceLive(dataSource: DataSource) extends DataService:
-  def getCustomers: IO[SQLException, List[Record]] =
-    run {
-      customerMembership {
-        humanCustomer(HumanType.Regular("h", 1982))
-        ++
-        humanCustomer(HumanType.Super("g", 1856))
-      }(_ => true, (c, p) => if p.pricing == "sane" then c.membership else p.insaneMembership)
-    }.provideService(dataSource)
+  def getCustomersPlan(params: Map[String, String], columns: List[String]) =
+    run(customersPlan(params, columns), OuterSelectWrap.Never).provideService(dataSource)
+  def getCustomers(params: Map[String, String], columns: List[String]): IO[SQLException, List[Record]] =
+    run(customers(params, columns)).provideService(dataSource)
 
 object RunLayer extends zio.App:
   override def run(args: List[String]): ZIO[ZEnv, Nothing, ExitCode] =
     (for {
       dsl <- (DataService.live).build.useNow
-      _   <- dsl.get.getCustomers.tap(cs => printLine(cs.toString))
+      _   <- dsl.get.getCustomers(Map(), List()).tap(cs => printLine(cs.toString))
     } yield ()).provideCustomLayer(QuillContext.dataSourceLayer).exitCode

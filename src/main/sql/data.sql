@@ -1,25 +1,25 @@
 
 CREATE TABLE Robot(
-    id INT,
+    id INT primary key,
     model VARCHAR(255),
     assemblyYear INT
 );
 
 CREATE TABLE KillerRobot(
-    id INT,
+    id INT primary key,
     model VARCHAR(255),
     assemblyYear INT,
     series VARCHAR(255)
 );
 
 CREATE TABLE Yetti(
-    id INT,
+    id INT primary key,
     uniqueGruntingSound VARCHAR(255),
     age INT
 );
 
 CREATE TABLE Houses(
-    zip INT,
+    id INT primary key,
     owner INT,
     origin VARCHAR(255),
     hasChargingPort Boolean
@@ -34,7 +34,7 @@ CREATE TABLE PricingYears(
 );
 
 CREATE TABLE Human(
-    id INT,
+    id INT primary key,
     firstName VARCHAR(255),
     lastName VARCHAR(255),
     age INT,
@@ -43,18 +43,20 @@ CREATE TABLE Human(
 );
 
 CREATE TABLE SuperHuman(
-    id INT,
+    id INT primary key,
     heroName VARCHAR(255),
     age INT,
     side VARCHAR(255)
 );
 
+-- TODO change: age -> born
 
-INSERT INTO public.houses (zip, owner, origin, haschargingport) VALUES (123, 1, 'US', true);
-INSERT INTO public.houses (zip, owner, origin, haschargingport) VALUES (123, 2, 'UK', true);
+INSERT INTO public.houses (id, owner, origin, haschargingport) VALUES (1, 1, 'US', true);
+INSERT INTO public.houses (id, owner, origin, haschargingport) VALUES (2, 2, 'UK', true);
 
-INSERT INTO public.human (id, firstname, lastname, age, membership, segment) VALUES (1, 'Joe', 'Smith', 44, 'k', 's');
-INSERT INTO public.human (id, firstname, lastname, age, membership, segment) VALUES (2, 'Jack', 'Rolland', 44, 'k', 's');
+INSERT INTO public.human (id, firstname, lastname, age, membership, segment) VALUES (1, 'Joe', 'Smith', 1994, 'k', 'h');
+INSERT INTO public.human (id, firstname, lastname, age, membership, segment) VALUES (2, 'Joe', 'Rolland', 1993, 'k', 'h');
+INSERT INTO public.human (id, firstname, lastname, age, membership, segment) VALUES (3, 'Jack', 'Roe', 1993, 'k', 'h');
 
 INSERT INTO public.killerrobot (id, model, assemblyyear, series) VALUES (1, 'T', 1990, '1000');
 INSERT INTO public.killerrobot (id, model, assemblyyear, series) VALUES (2, 'T', 1980, '100');

@@ -30,6 +30,18 @@ object Queries:
       customer <- cs
       h        <- query[Houses].join(h => h.owner == customer.id && housesFilter(h))
       p        <- query[PricingYears].join(p => customer.age > p.startYear && customer.age < p.endYear)
-    } yield Record(customer.name, customer.age, customer.membership, customer.id, h.zip)
+    } yield Record(customer.name, customer.age, customer.membership, customer.id, h.id)
+
+  inline def customers(inline params: Map[String, String], inline columns: List[String]) =
+    customerMembership {
+      humanCustomer(HumanType.Regular("h", 1982))
+      ++
+      humanCustomer(HumanType.Super("g", 1856))
+    }(_ => true, (c, p) => if p.pricing == "sane" then c.membership else p.insaneMembership)
+      .filterByKeys(params)
+      .filterColumns(columns)
+
+  inline def customersPlan(inline filters: Map[String, String], inline columns: List[String]) =
+    quote { infix"EXPLAIN VERBOSE ${customers(filters, columns)}".pure.as[Query[String]] }
 
 end Queries

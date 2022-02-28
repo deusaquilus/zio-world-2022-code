@@ -15,10 +15,10 @@ case class Customer(id: Int, name: String, age: Int, membership: String)
 
 case class Yetti(id: Int, uniqueGruntingSound: String, age: Int)
 
-case class Houses(zip: Int, owner: Int, origin: String, hasChargingPort: Boolean)
+case class Houses(id: Int, owner: Int, origin: String, hasChargingPort: Boolean)
 case class PricingYears(startYear: Int, endYear: Int, pricing: String, insaneMembership: String, voltage: Int)
 
-case class Record(name: String, age: Int, membership: String, id: Int, zip: Int)
+case class Record(name: String, age: Int, membership: String, id: Int, hid: Int)
 
 val ctx = new SqlMirrorContext(PostgresDialect, Literal)
 import ctx._
